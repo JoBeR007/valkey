@@ -1219,8 +1219,25 @@ typedef struct LastWrittenBuf {
                       * This length differs from bufpos in case of copy avoidance */
 } LastWrittenBuf;
 
-/* Opaque, defined in networking.c */
-typedef struct commandParserState commandParserState;
+typedef struct LastWrittenBuf {
+    char *buf;       /* Last buffer that has been written to the client connection
+                      * Last buffer is either c->buf or c->reply list node (i.e. buf from a clientReplyBlock) */
+    size_t bufpos;   /* The buffer has been written until this position */
+    size_t data_len; /* The actual reply length written from this buffer
+                      * This length differs from bufpos in case of copy avoidance */
+} LastWrittenBuf;
+
+/* Parser state and parse result of a command from a client's input buffer. */
+typedef struct commandParserState {
+    int read_flags; /* complete, error or 0 (parsing not complete) */
+    int argc;
+    robj **argv;
+    int argv_len;
+    int slot;
+    size_t argv_len_sum;
+    unsigned long long input_bytes;
+    struct serverCommand *cmd;
+} commandParserState;
 
 typedef struct client {
     /* Basic client information and connection. */
@@ -2708,10 +2725,11 @@ void dictVanillaFree(void *val);
 #define READ_FLAGS_PRIMARY (1 << 14)
 #define READ_FLAGS_DONT_PARSE (1 << 15)
 #define READ_FLAGS_AUTH_REQUIRED (1 << 16)
-#define READ_FLAGS_COMMAND_NOT_FOUND (1 << 17)
-#define READ_FLAGS_BAD_ARITY (1 << 18)
-#define READ_FLAGS_NO_KEYS (1 << 19)
-#define READ_FLAGS_CROSSSLOT (1 << 20)
+#define READ_FLAGS_PREFETCHED (1 << 17)
+#define READ_FLAGS_COMMAND_NOT_FOUND (1 << 18)
+#define READ_FLAGS_BAD_ARITY (1 << 19)
+#define READ_FLAGS_NO_KEYS (1 << 20)
+#define READ_FLAGS_CROSSSLOT (1 << 21)
 
 /* Write flags for various write errors and states */
 #define WRITE_FLAGS_WRITE_ERROR (1 << 0)
