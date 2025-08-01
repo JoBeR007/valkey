@@ -256,20 +256,6 @@ static void addCommandToBatch(struct serverCommand *cmd, robj **argv, int argc, 
     getKeysFreeResult(&result);
 }
 
-/* Get a command's keys and add them to the current prefetching batch. */
-static void addCommandToBatch(struct serverCommand *cmd, robj **argv, int argc, serverDb *db, int slot) {
-    getKeysResult result;
-    initGetKeysResult(&result);
-    int num_keys = getKeysFromCommand(cmd, argv, argc, &result);
-    for (int i = 0; i < num_keys && batch->key_count < batch->max_prefetch_size; i++) {
-        batch->keys[batch->key_count] = argv[result.keys[i].pos];
-        batch->slots[batch->key_count] = slot >= 0 ? slot : 0;
-        batch->keys_tables[batch->key_count] = kvstoreGetHashtable(db->keys, batch->slots[batch->key_count]);
-        batch->key_count++;
-    }
-    getKeysFreeResult(&result);
-}
-
 /* Adds the client's command to the current batch and processes the batch
  * if it becomes full.
  *
@@ -282,7 +268,7 @@ int addCommandToBatchAndProcessIfFull(client *c) {
     /* Client's next command */
     if (c->parsed_cmd) {
         c->read_flags |= READ_FLAGS_PREFETCHED;
-        addCommandToBatch(c->io_parsed_cmd, c->argv, c->argc, c->db, c->slot);
+        addCommandToBatch(c->parsed_cmd, c->argv, c->argc, c->db, c->slot);
     }
 
     /* Commands in the queue. */

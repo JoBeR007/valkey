@@ -1219,13 +1219,6 @@ typedef struct LastWrittenBuf {
                       * This length differs from bufpos in case of copy avoidance */
 } LastWrittenBuf;
 
-typedef struct LastWrittenBuf {
-    char *buf;       /* Last buffer that has been written to the client connection
-                      * Last buffer is either c->buf or c->reply list node (i.e. buf from a clientReplyBlock) */
-    size_t bufpos;   /* The buffer has been written until this position */
-    size_t data_len; /* The actual reply length written from this buffer
-                      * This length differs from bufpos in case of copy avoidance */
-} LastWrittenBuf;
 
 /* Parser state and parse result of a command from a client's input buffer. */
 typedef struct commandParserState {
